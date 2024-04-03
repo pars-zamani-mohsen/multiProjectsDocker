@@ -1,0 +1,59 @@
+version: '3'
+
+volumes:
+  db_data_exampleprojectsdocker:
+
+services:
+  mysql_exampleprojectsdocker:
+    image: mysql:latest
+    container_name: mysql_exampleprojectsdocker
+    restart: unless-stopped
+    tty: true
+    ports:
+      - '3006'
+    volumes:
+      - db_data_exampleprojectsdocker:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: ${DB_CONNECTION}
+
+  redis_exampleprojectsdocker:
+    image: 'redis:alpine'
+    container_name: redis_exampleprojectsdocker
+    restart: unless-stopped
+    tty: true
+    ports:
+      - '6379'
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+        reservations:
+          cpus: '0.5'
+          memory: 128M
+    volumes:
+      - db_data_exampleprojectsdocker:/data
+
+  app_exampleprojectsdocker:
+    build:
+      context: ../
+      dockerfile: docker/app/Dockerfile
+    container_name: app_exampleprojectsdocker
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8000"
+    depends_on:
+      - mysql_exampleprojectsdocker
+      - redis_exampleprojectsdocker
+    external_links:
+      - mysql_exampleprojectsdocker
+      - redis_exampleprojectsdocker
+    volumes:
+      - ../:/var/www/html
+      - ./app/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
