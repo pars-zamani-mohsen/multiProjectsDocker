@@ -22,19 +22,10 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd xml zip soap intl pdo_sqlite
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd xml zip soap intl pdo_sqlite sockets
 
-# Add to ini file
-RUN echo "extension=bcmath.so" > /usr/local/etc/php/conf.d/docker-php-ext-bcmath.ini && \
-    echo "extension=exif.so" > /usr/local/etc/php/conf.d/docker-php-ext-exif.ini && \
-    echo "extension=gd.so" > /usr/local/etc/php/conf.d/docker-php-ext-gd.ini && \
-    echo "extension=pcntl.so" > /usr/local/etc/php/conf.d/docker-php-ext-pcntl.ini && \
-    echo "extension=pdo_mysql.so" > /usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini && \
-    echo "extension=redis.so" > /usr/local/etc/php/conf.d/docker-php-ext-redis.ini && \
-    echo "extension=soap.so" > /usr/local/etc/php/conf.d/docker-php-ext-soap.ini && \
-    echo "extension=sodium.so" > /usr/local/etc/php/conf.d/docker-php-ext-sodium.ini && \
-    echo "extension=zip.so" > /usr/local/etc/php/conf.d/docker-php-ext-zip.ini
-
+RUN pecl list | grep redis || (pecl install redis \
+    && docker-php-ext-enable redis)
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
